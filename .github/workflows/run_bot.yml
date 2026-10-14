@@ -29,6 +29,7 @@ jobs:
 
       - name: Run Main Script
         env:
+          GOOGLE_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python main.py
 
