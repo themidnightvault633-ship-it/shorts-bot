@@ -2,13 +2,12 @@ import os
 import json
 import random
 import requests
-from google import genai
+import google.generativeai as genai
 import asyncio
-import time
 import edge_tts
 from moviepy.editor import ImageClip, AudioFileClip, concatenate_videoclips
 
-client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 
 def generate_story():
     print("🧠 Generating Suspense Story with Gemini...")
@@ -28,25 +27,14 @@ def generate_story():
       "narration": "Full 45-second script text divided into smooth sentences for voiceover."
     }
     """
-    
-    # Retry mechanism for 503 server high demand
-    for attempt in range(3):
-        try:
-            response = client.models.generate_content(
-                model='gemini-1.5-flash',
-                contents=prompt
-            )
-            text = response.text.strip()
-            if text.startswith("```json"):
-                text = text[7:-3].strip()
-            elif text.startswith("```"):
-                text = text[3:-3].strip()
-            return json.loads(text)
-        except Exception as e:
-            print(f"Attempt {attempt+1} failed due to server load: {e}")
-            if attempt == 2:
-                raise e
-            time.sleep(5)
+    model = genai.GenerativeModel('gemini-1.5-flash')
+    response = model.generate_content(prompt)
+    text = response.text.strip()
+    if text.startswith("```json"):
+        text = text[7:-3].strip()
+    elif text.startswith("```"):
+        text = text[3:-3].strip()
+    return json.loads(text)
 
 async def generate_voice(text):
     print("🎙️ Generating US Voiceover...")
